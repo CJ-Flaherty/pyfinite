@@ -1,4 +1,3 @@
-
 # Copyright Emin Martinian 2002.  See below for license terms.
 # Version Control Info: $Id: ffield.py,v 1.5 2007/03/15 02:49:44 emin Exp $
 
@@ -25,86 +24,76 @@ detailed information on various topics:
                     as well as some of the built in testing routines.
 
 """
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 22 11:18:48 2020
-
-@author: colin
-"""
-import string, random, os, os.path, pickle, re, itertools, copy
+import random, os, os.path, pickle, itertools, copy
 import sys
-import functools
-import numpy
 from functools import reduce
 
 gPrimitivePolys = {}
 gPrimitivePolysCondensed = {
-    1  : (1,0),
-    2  : (2,1,0),
-    3  : (3,1,0),
-    4  : (4,1,0),
-    5  : (5,2,0),
-    6  : (6,4,3,1,0),
-    7  : (7,1,0),
-    8  : (8,4,3,2,0),
-    9  : (9,4,0),
-    10 : (10,6,5,3,2,1,0),
-    11 : (11,2,0),
-    12 : (12,7,6,5,3,1,0),
-    13 : (13,4,3,1,0),
-    14 : (14,7,5,3,0),
-    15 : (15,5,4,2,0),
-    16 : (16,5,3,2,0),
-    17 : (17,3,0),
-    18 : (18,12,10,1,0),
-    19 : (19,5,2,1,0),
-    20 : (20,10,9,7,6,5,4,1,0),
-    21 : (21,6,5,2,0),
-    22 : (22,12,11,10,9,8,6,5,0),
-    23 : (23,5,0),
-    24 : (24,16,15,14,13,10,9,7,5,3,0),
-    25 : (25,8,6,2,0),
-    26 : (26,14,10,8,7,6,4,1,0),
-    27 : (27,12,10,9,7,5,3,2,0),
-    28 : (28,13,7,6,5,2,0),
-    29 : (29,2,0),
-    30 : (30,17,16,13,11,7,5,3,2,1,0),
-    31 : (31,3,0),
-    32 : (32,15,9,7,4,3,0),
-    33 : (33,13,12,11,10,8,6,3,0),
-    34 : (34,16,15,12,11,8,7,6,5,4,2,1,0),
-    35 : (35, 11, 10, 7, 5, 2, 0),
-    36 : (36, 23, 22, 20, 19, 17, 14, 13, 8, 6, 5, 1, 0),
-    37 : (37, 5, 4, 3, 2, 1, 0),
-    38 : (38, 14, 10, 9, 8, 5, 2, 1, 0),
-    39 : (39, 15, 12, 11, 10, 9, 7, 6, 5, 2 , 0),
-    40 : (40, 23, 21, 18, 16, 15, 13, 12, 8, 5, 3, 1, 0),
-    97 : (97,6,0),
-    100 : (100,15,0)
-    }
+    1: (1, 0),
+    2: (2, 1, 0),
+    3: (3, 1, 0),
+    4: (4, 1, 0),
+    5: (5, 2, 0),
+    6: (6, 4, 3, 1, 0),
+    7: (7, 1, 0),
+    8: (8, 4, 3, 2, 0),
+    9: (9, 4, 0),
+    10: (10, 6, 5, 3, 2, 1, 0),
+    11: (11, 2, 0),
+    12: (12, 7, 6, 5, 3, 1, 0),
+    13: (13, 4, 3, 1, 0),
+    14: (14, 7, 5, 3, 0),
+    15: (15, 5, 4, 2, 0),
+    16: (16, 5, 3, 2, 0),
+    17: (17, 3, 0),
+    18: (18, 12, 10, 1, 0),
+    19: (19, 5, 2, 1, 0),
+    20: (20, 10, 9, 7, 6, 5, 4, 1, 0),
+    21: (21, 6, 5, 2, 0),
+    22: (22, 12, 11, 10, 9, 8, 6, 5, 0),
+    23: (23, 5, 0),
+    24: (24, 16, 15, 14, 13, 10, 9, 7, 5, 3, 0),
+    25: (25, 8, 6, 2, 0),
+    26: (26, 14, 10, 8, 7, 6, 4, 1, 0),
+    27: (27, 12, 10, 9, 7, 5, 3, 2, 0),
+    28: (28, 13, 7, 6, 5, 2, 0),
+    29: (29, 2, 0),
+    30: (30, 17, 16, 13, 11, 7, 5, 3, 2, 1, 0),
+    31: (31, 3, 0),
+    32: (32, 15, 9, 7, 4, 3, 0),
+    33: (33, 13, 12, 11, 10, 8, 6, 3, 0),
+    34: (34, 16, 15, 12, 11, 8, 7, 6, 5, 4, 2, 1, 0),
+    35: (35, 11, 10, 7, 5, 2, 0),
+    36: (36, 23, 22, 20, 19, 17, 14, 13, 8, 6, 5, 1, 0),
+    37: (37, 5, 4, 3, 2, 1, 0),
+    38: (38, 14, 10, 9, 8, 5, 2, 1, 0),
+    39: (39, 15, 12, 11, 10, 9, 7, 6, 5, 2, 0),
+    40: (40, 23, 21, 18, 16, 15, 13, 12, 8, 5, 3, 1, 0),
+    97: (97, 6, 0),
+    100: (100, 15, 0)
+}
 
 for n in gPrimitivePolysCondensed.keys():
-    gPrimitivePolys[n] = [0]*(n+1)
+    gPrimitivePolys[n] = [0] * (n + 1)
     unity = 1
     for index in gPrimitivePolysCondensed[n]:
         gPrimitivePolys[n][index] = unity
     gPrimitivePolys[n].reverse()
-
 
 if sys.version_info[0] >= 3:
     def long(data):
         "Fake the `long` function since not needed after python 2"
         return data
 
-
 with open('CPolys_dict.txt', 'rb') as handle:
     CPolys_dict = pickle.loads(handle.read())
+
 
 class FField:
     """
     The FField class implements a finite field calculator.  The
     following functions are provided:
-
     __init__
     Add 
     Subtract
@@ -153,7 +142,7 @@ class FField:
     See documentation on the appropriate method for further details.
     """
 
-    def __init__(self,p,n,gen=0,useLUT=-1):
+    def __init__(self, p, n, gen=0, useLUT=-1):
         """
         This method constructs the field GF(p^n).  It takes 2
         required arguments, a prime p and an integer n, and two optional arguments, gen,
@@ -174,47 +163,45 @@ class FField:
         """
         self.n = n
         self.p = p
-        self.order = p**n
-        
-                    
-        if p ==2: #Field has characteristic 2, use bitwise operations
-                
+        self.order = p ** n
+
+        if p == 2:  # Field has characteristic 2, use bitwise operations
+
             if gen:
                 self.generator = gen
             else:
-                self.generator =  self.ConvertListToElement(gPrimitivePolys[self.n])
-            
-            if (useLUT == 1 or (useLUT == -1 and self.n < 10)): # use lookup table
+                self.generator = self.ConvertListToElement(gPrimitivePolys[self.n])
+            if useLUT == 1 or (useLUT == -1 and self.n < 10):  # use lookup table
                 self.unity = 1
-                self.root_substitution = self.generator - self.order #order equiv to poly with 1 at nth degree
+                self.root_substitution = self.generator - self.order  # order equiv to poly with 1 at nth degree
                 self.element_to_power = {}
                 self.power_to_element = {}
                 self.Char2GenerateDiscreteLogTable()
-                #self.Add = self.LUTAdd
-                #self.Subtract = self.LUTSubtract
-                #self.Inverse = self.LUTInverse
-                #self.Multiply = self.LUTMultiply
-                #self.Divide = self.LUTDivide
+                # self.Add = self.LUTAdd
+                # self.Subtract = self.LUTSubtract
+                # self.Inverse = self.LUTInverse
+                # self.Multiply = self.LUTMultiply
+                # self.Divide = self.LUTDivide
                 self.Add = self.Char2Add
-                self.Subtract = self.Char2Add #in fields with char 2, x+y = x-y for all x and y
+                self.Subtract = self.Char2Add  # in fields with char 2, x+y = x-y for all x and y
                 self.Inverse = self.Char2Inverse
                 self.Multiply = self.Char2Multiply
                 self.Divide = self.Char2Divide
-            elif (self.n < 15):
+            elif self.n < 15:
                 self.unity = 1
                 self.Add = self.Char2Add
-                self.Subtract = self.Char2Add #in fields with char 2, x+y = x-y for all x and y
+                self.Subtract = self.Char2Add  # in fields with char 2, x+y = x-y for all x and y
                 self.Inverse = self.Char2Inverse
                 self.Multiply = self.Char2Multiply
                 self.Divide = self.Char2Divide
-            else: # Need to use longs for larger fields
+            else:  # Need to use longs for larger fields
                 self.unity = long(1)
                 self.Inverse = self.Char2InverseForBigField
-                self.Multiply = lambda a,b: self.Char2Multiply(long(a),long(b))
-                self.Divide = lambda a,b: self.Char2Divide(long(a),long(b))
+                self.Multiply = lambda a, b: self.Char2Multiply(long(a), long(b))
+                self.Divide = lambda a, b: self.Char2Divide(long(a), long(b))
                 self.Add = self.Char2Add
                 self.Subtract = self.Char2Add
-        
+
         elif n == 1:
             self.zero = 0
 
@@ -225,68 +212,64 @@ class FField:
             self.Divide = self.IntegerModularDivide
             self.Subtract = self.IntegerModularSubtract
             self.Inverse = self.IntegerModularInverse
-            
+
         else:
-            if p != 2: 
-                self.underlying_field = FField(p,1)
+            if p != 2:
+                self.underlying_field = FField(p, 1)
                 self.zero = Polynomial([0], self.underlying_field)
                 self.unity = Polynomial([1], self.underlying_field)
                 if gen:
                     self.generator = gen
                 else:
                     self.generator = Polynomial(CPolys_dict[p][n], self.underlying_field)
-                
-                if self.order < 2**15:
+
+                if self.order < 2 ** 15:
                     self.root_substitution = self.GetRootSubstitution()
                     self.element_to_power = [0 for _ in range(self.order)]
                     self.power_to_element = [0 for _ in range(self.order)]
                     self.GenerateDiscreteLogTable()
-                    self.Add = self.PolyAdd #LUT
+                    self.Add = self.PolyAdd  # LUT
                     self.Multiply = self.LUTPolyMultiply
                     self.Divide = self.LUTPolyDivide
-                    self.Subtract = self.PolySubtract #LUT
+                    self.Subtract = self.PolySubtract  # LUT
                     self.Inverse = self.LUTPolyInverse
-                    
+
                 else:
-                    
+
                     self.Add = self.PolyAdd
                     self.Multiply = self.PolyMultiply
                     self.Divide = self.PolyDivide
                     self.Subtract = self.PolySubtract
                     self.Inverse = self.PolyInverse
-                    
-    
-    def LUTAdd(self,a,b):
+
+    def LUTAdd(self, a, b):
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
-        return self.power_to_element[a_power + self.GetZechsLog((b_power - a_power)%self.p)]
-    
-    def LUTSubtract(self,a,b):
+        return self.power_to_element[a_power + self.GetZechsLog((b_power - a_power) % self.p)]
+
+    def LUTSubtract(self, a, b):
         if self.p == 2:
             e = 0
         else:
-            e = (self.order -1)/2
+            e = (self.order - 1) / 2
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
-        return self.power_to_element[a_power + self.GetZechsLog((e + b_power - a_power)%self.p)]
-        
-        
-        
-    def Char2Add(self,x,y):
+        return self.power_to_element[a_power + self.GetZechsLog((e + b_power - a_power) % self.p)]
+
+    def Char2Add(self, x, y):
         """
         Adds two field elements and returns the result.
         """
 
         return x ^ y
-                    
-    def Char2Divide(self,f,v):
+
+    def Char2Divide(self, f, v):
         """
         Divide(f,v) returns f * v^-1.
         """
-        return self.Char2Multiply(f,self.Inverse(v))
+        return self.Char2Multiply(f, self.Inverse(v))
 
-                    
-    def Char2MultiplyWithoutReducing(self,f,v):
+    def Char2MultiplyWithoutReducing(self, f, v):
         """
         Multiplies two field elements and does not take the result
         modulo self.generator.  You probably should not use this
@@ -298,17 +281,15 @@ class FField:
 
         result = 0
         mask = self.unity
-        
-        for _ in range(self.n+1):
+
+        for _ in range(self.n + 1):
             if (mask & v):
                 result = result ^ f
             f = f << 1
             mask = mask << 1
         return result
 
-
-                    
-    def Char2Multiply(self,f,v):
+    def Char2Multiply(self, f, v):
         """
         Multiplies two field elements (modulo the generator
         self.generator) and returns the result.
@@ -316,28 +297,27 @@ class FField:
         See MultiplyWithoutReducing if you don't want multiplication
         modulo self.generator.
         """
-        m = self.Char2MultiplyWithoutReducing(f,v)
-        return self.Char2FullDivision(m,self.generator,
-                                 self.Char2FindDegree(m),self.n)[1]
+        m = self.Char2MultiplyWithoutReducing(f, v)
+        return self.Char2FullDivision(m, self.generator,
+                                      self.Char2FindDegree(m), self.n)[1]
 
-                    
-    def Char2Inverse(self,f):
+    def Char2Inverse(self, f):
         """
         Computes the multiplicative inverse of its argument and
         returns the result.
         """
-        return self.Char2ExtendedEuclid(1,f,self.generator,
-                                   self.Char2FindDegree(f),self.n)[1]
+        return self.Char2ExtendedEuclid(1, f, self.generator,
+                                        self.Char2FindDegree(f), self.n)[1]
 
-    def Char2InverseForBigField(self,f):
+    def Char2InverseForBigField(self, f):
         """
         Computes the multiplicative inverse of its argument and
         returns the result.
         """
-        return self.Char2ExtendedEuclid(self.unity,long(f),self.generator,
-                                   self.Char2FindDegree(long(f)),self.n)[1]
-                    
-    def Char2FindDegree(self,v):
+        return self.Char2ExtendedEuclid(self.unity, long(f), self.generator,
+                                        self.Char2FindDegree(long(f)), self.n)[1]
+
+    def Char2FindDegree(self, v):
         """
         Find the degree of the polynomial representing the input field
         element v.  This takes O(degree(v)) operations.
@@ -346,30 +326,29 @@ class FField:
         could be written using binary search...
         """
 
-        if (v):
+        if v:
             result = -1
-            while(v):
+            while v:
                 v = v >> 1
                 result = result + 1
             return result
-        else:
-            return 0
-                    
-    def Char2ExtendedEuclid(self,d,a,b,aDegree,bDegree):
+        return 0
+
+    def Char2ExtendedEuclid(self, d, a, b, aDegree, bDegree):
         """
         Takes arguments (d,a,b,aDegree,bDegree) where d = gcd(a,b)
         and returns the result of the extended Euclid algorithm
         on (d,a,b).
         """
-        if (b == 0):
-            return (a,self.unity,0)
+        if b == 0:
+            return (a, self.unity, 0)
         else:
-            (floorADivB, aModB) = self.Char2FullDivision(a,b,aDegree,bDegree)
-            (d,x,y) = self.Char2ExtendedEuclid(d, b, aModB, bDegree,
-                                          self.Char2FindDegree(aModB))
-            return (d,y,self.Subtract(x,self.Multiply(floorADivB,y)))
-        
-    def Char2FullDivision(self,f,v,fDegree,vDegree):
+            (floorADivB, aModB) = self.Char2FullDivision(a, b, aDegree, bDegree)
+            (d, x, y) = self.Char2ExtendedEuclid(d, b, aModB, bDegree,
+                                                 self.Char2FindDegree(aModB))
+            return (d, y, self.Subtract(x, self.Multiply(floorADivB, y)))
+
+    def Char2FullDivision(self, f, v, fDegree, vDegree):
         """
         Takes four arguments, f, v, fDegree, and vDegree where
         fDegree and vDegree are the degrees of the field elements
@@ -385,17 +364,15 @@ class FField:
         result = 0
         i = fDegree
         mask = self.unity << i
-        while (i >= vDegree):
-            if (mask & f):
+        while i >= vDegree:
+            if mask & f:
                 result = result ^ (self.unity << (i - vDegree))
                 f = self.Subtract(f, v << (i - vDegree))
             i = i - 1
             mask = mask >> self.unity
-        return (result,f)
+        return (result, f)
 
-                
-                    
-    def ConvertListToElement(self,l):
+    def ConvertListToElement(self, l):
         """
         This method takes as input a binary list (e.g. [1, 0, 1, 1])
         and converts it to a decimal representation of a field element.
@@ -407,151 +384,127 @@ class FField:
         field.
         """
 
-        temp = map(lambda a, b: a << b, l, range(len(l)-1,-1,-1))
+        temp = map(lambda a, b: a << b, l, range(len(l) - 1, -1, -1))
         return reduce(lambda a, b: a | b, temp)
 
-                    
-    def LUTPolyInverse(self,a):
+    def LUTPolyInverse(self, a):
         element_power = self.element_to_power[hash(a)]
-            
-        return self.power_to_element[self.order - element_power -1] 
-                    
-    def LUTPolyMultiply(self,a,b):
+        return self.power_to_element[self.order - element_power - 1]
+
+    def LUTPolyMultiply(self, a, b):
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
-        return self.power_to_element[(a_power + b_power) % (self.order-1)]
-        
-    def LUTPolyDivide(self,a,b):
+        return self.power_to_element[(a_power + b_power) % (self.order - 1)]
+
+    def LUTPolyDivide(self, a, b):
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
-        return self.power_to_element[(a_power - b_power) % (self.order-1)]
-        
-        
-                    
+        return self.power_to_element[(a_power - b_power) % (self.order - 1)]
+
     def GetRootSubstitution(self):
         temp = self.zero - self.generator
         sub_coeffs = temp.coeffs
         sub_coeffs[self.n] = 0
-        return Polynomial(sub_coeffs,self.underlying_field)
-    
+        return Polynomial(sub_coeffs, self.underlying_field)
+
     def Char2GenerateDiscreteLogTable(self):
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
-        if (os.path.exists(lutName)):
-            #fd = open(lutName,'rb')
-            #self.power_to_element, self.element_to_power = pickle.load(fd)
-            #fd.close()
+        if os.path.exists(lutName):
+            # fd = open(lutName,'rb')
+            # self.power_to_element, self.element_to_power = pickle.load(fd)
+            # fd.close()
             pass
         else:
             L = [0 for x in range(self.order)]
             L[0] = copy.copy(self.unity)
             self.element_to_power[self.unity] = 0
             self.power_to_element[0] = copy.copy(self.unity)
-            for i in range(1,self.order-1):
-                element = L[i-1] << 1
+            for i in range(1, self.order - 1):
+                element = L[i - 1] << 1
                 if element >= self.order:
                     element -= self.order
                     element += self.root_substitution
                 L[i] = element
                 self.element_to_power[element] = i
                 self.power_to_element[i] = element
-            #fd = open(lutName,'wb')
-            #pickle.dump(self.power_to_element, self.element_to_power, fd)
-            #fd.close()
-            
-            
-            
-        
-                    
-                    
-    
+            # fd = open(lutName,'wb')
+            # pickle.dump(self.power_to_element, self.element_to_power, fd)
+            # fd.close()
+
     def GenerateDiscreteLogTable(self):
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
-        
-        if False:#(os.path.exists(lutName)):
-            #fd = open(lutName,'rb')
-            #self.power_to_element, self.element_to_power = pickle.load(fd)
-            #fd.close()
+        if False:  # (os.path.exists(lutName)):
+            # fd = open(lutName,'rb')
+            # self.power_to_element, self.element_to_power = pickle.load(fd)
+            # fd.close()
             pass
         else:
-            x = Polynomial([0,1],self.underlying_field) #equiv to the polynomial x
+            x = Polynomial([0, 1], self.underlying_field)  # equiv to the polynomial x
             L = [0 for x in range(self.order)]
             L[0] = copy.copy(self.unity)
             self.element_to_power[hash(self.unity)] = 0
             self.power_to_element[0] = copy.copy(self.unity)
-            for i in range(1,self.order-1):
-                poly = L[i-1]*x            
+            for i in range(1, self.order - 1):
+                poly = L[i - 1] * x
                 if poly.degree == self.n:
                     for roots in range(poly.coeffs[self.n]):
                         poly += self.root_substitution
                     reduced_coeffs = poly.coeffs
                     reduced_coeffs[self.n] = 0
-                    poly = Polynomial(reduced_coeffs, self.underlying_field)                  
+                    poly = Polynomial(reduced_coeffs, self.underlying_field)
                 L[i] = poly
                 self.element_to_power[hash(poly)] = i
                 self.power_to_element[i] = poly
-            #with open(lutName, 'wb') as fd:
-#                pickle.dump(self.power_to_element, self.element_to_power, fd)
-             #   fd.close()
-            
-                
-            
-        
+            # with open(lutName, 'wb') as fd:
 
-    def PolyAdd(self,a,b):
-        return a+b
-    
-    def PolySubtract(self,a,b):
-        return a-b
-    
-    def PolyMultiply(self,a,b):
-        return (a*b) %self.generator
-    
-    def PolyDivide(self,a,b):
+    #                pickle.dump(self.power_to_element, self.element_to_power, fd)
+    #   fd.close()
+
+    def PolyAdd(self, a, b):
+        return a + b
+
+    def PolySubtract(self, a, b):
+        return a - b
+
+    def PolyMultiply(self, a, b):
+        return (a * b) % self.generator
+
+    def PolyDivide(self, a, b):
         b = self.Inverse(b)
-        return self.PolyMultiply(a,b)
-    
-    def PolyInverse(self,a):
-        return self.ExtendedEuclid(a,self.generator)[0] % self.generator
-    
-    
-                
-            
-    def IntegerModularAdd(self,a,b):
-        return (a+b) %self.p
-    
-    def IntegerModularSubtract(self,a,b):
-        return (a-b) %self.p
-    
-    
-    def IntegerModularMultiply(self,a,b):
-        return (a*b) %self.p
-    
-    def IntegerModularDivide(self,a,b):
+        return self.PolyMultiply(a, b)
+
+    def PolyInverse(self, a):
+        return self.ExtendedEuclid(a, self.generator)[0] % self.generator
+
+    def IntegerModularAdd(self, a, b):
+        return (a + b) % self.p
+
+    def IntegerModularSubtract(self, a, b):
+        return (a - b) % self.p
+
+    def IntegerModularMultiply(self, a, b):
+        return (a * b) % self.p
+
+    def IntegerModularDivide(self, a, b):
         b = self.IntegerModularInverse(b)
-        return (a*b) % self.p
-    
-    def IntegerModularInverse(self,a):
-        #return a**(p-2) % p
-        return self.ExtendedEuclid(a,self.p)[0] % self.p
-    
+        return (a * b) % self.p
 
-    def ExtendedEuclid(self,a,b):
-         s = copy.copy(self.zero)
-         old_s = copy.copy(self.unity)
-         t = copy.copy(self.unity)
-         old_t = copy.copy(self.zero)
-         r= b
-         old_r = a
-         while r != self.zero: 
+    def IntegerModularInverse(self, a):
+        return a ** (self.p - 2) % self.p
+
+    def ExtendedEuclid(self, a, b):
+        s = copy.copy(self.zero)
+        old_s = copy.copy(self.unity)
+        t = copy.copy(self.unity)
+        old_t = copy.copy(self.zero)
+        r = b
+        old_r = a
+        while r != self.zero:
             quotient = old_r // r
-            old_r, r = r,  old_r - (quotient * r)
-            old_s, s =s, old_s - (quotient *s)
-            old_t, t = t, old_t - (quotient *t)
-         return [old_s, old_t, old_r]
-
-    
-
-            
+            old_r, r = r, old_r - (quotient * r)
+            old_s, s = s, old_s - (quotient * s)
+            old_t, t = t, old_t - (quotient * t)
+        return [old_s, old_t, old_r]
 
     def TestChar2FullDivision(self):
         """
@@ -559,21 +512,12 @@ class FField:
         a(x) and b(x) and checking whether (c,d) == FullDivision(a,b)
         satsifies b*c + d == a
         """
-        #print('testchar2fulldivision')
-        f = 0
-        #print(self.n)
-
         a = self.GetRandomElement(nonZero=1)
         b = self.GetRandomElement(nonZero=1)
-        #print("a=",a)
-        #print("b=",b)
         aDegree = self.FindDegree(a)
         bDegree = self.FindDegree(b)
-
-        (c,d) = self.Char2FullDivision(a,b,aDegree,bDegree)
-        #print("c=",c)
-        #print("d=",d)
-        recon = self.Add(d, self.Multiply(c,b))
+        (c, d) = self.Char2FullDivision(a, b, aDegree, bDegree)
+        recon = self.Add(d, self.Multiply(c, b))
         assert (recon == a), ('TestFullDivision failed: a='
                               + repr(a) + ', b=' + repr(b) + ', c='
                               + repr(c) + ', d=' + repr(d) + ', recon=', recon)
@@ -586,12 +530,12 @@ class FField:
         """
         a = self.GetRandomElement(nonZero=1)
         aInv = self.Char2Inverse(a)
-        prod = self.Multiply(a,aInv)
+        prod = self.Multiply(a, aInv)
         assert 1 == prod, ('TestChar2Inverse failed:' + 'a=' + repr(a) + ', aInv='
                            + repr(aInv) + ', prod=' + repr(prod),
                            'gen=' + repr(self.generator))
-    
-    def GetRandomElement(self,nonZero=0,maxDegree=None):
+
+    def GetRandomElement(self, nonZero=0, maxDegree=None):
         """
         Return an element from the field chosen uniformly at random
         or, if the optional argument nonZero is true, chosen uniformly
@@ -605,17 +549,17 @@ class FField:
         if (maxDegree <= 1 and nonZero):
             return 1
         if (maxDegree < 31):
-            return random.randint(nonZero != 0,(1<<maxDegree)-1)
+            return random.randint(nonZero != 0, (1 << maxDegree) - 1)
         else:
             result = 0
-            for i in range(0,maxDegree):
-                result = result ^ (random.randint(0,1) << long(i))
+            for i in range(0, maxDegree):
+                result = result ^ (random.randint(0, 1) << long(i))
             if (nonZero and result == 0):
                 return self.GetRandomElement(1)
             else:
                 return result
-            
-    def FindDegree(self,v):
+
+    def FindDegree(self, v):
         """
         Find the degree of the polynomial representing the input field
         element v.  This takes O(degree(v)) operations.
@@ -624,18 +568,15 @@ class FField:
         could be written using binary search...
         """
 
-        if (v):
+        if v:
             result = -1
-            while(v):
+            while v:
                 v = v >> 1
                 result = result + 1
             return result
-        else:
-            return 0
-        
-        
-        
-    def ShowCoefficients(self,f):
+        return 0
+
+    def ShowCoefficients(self, f):
         """
         Show coefficients of input field element represented as a
         polynomial in decreasing order.
@@ -644,7 +585,7 @@ class FField:
         fDegree = self.n
 
         result = []
-        for i in range(fDegree,-1,-1):
+        for i in range(fDegree, -1, -1):
             if ((self.unity << i) & f):
                 result.append(1)
             else:
@@ -652,7 +593,7 @@ class FField:
 
         return result
 
-    def ShowPolynomial(self,f):
+    def ShowPolynomial(self, f):
         """
         Show input field element represented as a polynomial.
         """
@@ -660,16 +601,16 @@ class FField:
         fDegree = self.FindDegree(f)
         result = ''
 
-        if (f == 0):
+        if f == 0:
             return '0'
 
-        for i in range(fDegree,0,-1):
-            if ((1 << i) & f):
+        for i in range(fDegree, 0, -1):
+            if (1 << i) & f:
                 result = result + (' x^' + repr(i))
-        if (1 & f):
+        if 1 & f:
             result = result + ' ' + repr(1)
-        return result.strip().replace(' ',' + ')
-    
+        return result.strip().replace(' ', ' + ')
+
     def GetZechsLog(self, argument):
         """
         argument is an integer
@@ -677,88 +618,111 @@ class FField:
         element = self.Add(self.unity, self.power_to_element[argument])
         return self.element_to_power[element]
 
-class LUT:
-    """
-    Lookup table used to speed up some finite field operations.
-    """
-    pass
 
 class Polynomial:
     """
     Implements polynomials using a list to store coefficients.
+    Accepts a field
     Addition
     Subtraction
     Multiplication
     Division
-    
-    """
-    
-    def __init__(self, coeffs, field):
-        self.coeffs = coeffs
-        self.degree = len(self.coeffs)-1 #take off following 0's
-        self.field = field
-        
-    def __eq__(self,other):
-        if isinstance(other, Polynomial):
-            for x,y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue = 0):
-                if x!=y:
-                    return False
 
-            return True
-        return False
-        
+    """
+
+    def __init__(self, coeffs, field):
+        for i in reversed(coeffs[1:]):
+            if not i:
+                del coeffs[-1]
+            else:
+                break
+        self.coeffs = coeffs
+        self.degree = len(self.coeffs) - 1
+        self.field = field
+
+    def __str__(self):
+        """
+        from:
+        https://stackoverflow.com/questions/34843514/printing-a-polynomial-in-python
+        Łukasz Rogalski
+        """
+        chunks = []
+        for coeff, power in zip(self.coeffs, range(len(self.coeffs) - 1, -1, -1)):
+            if coeff == 0:
+                continue
+            chunks.append(self.format_coeff(coeff))
+            chunks.append(self.format_power(power))
+        chunks[0] = chunks[0].lstrip("+")
+        return ''.join(chunks)
+
+    @staticmethod
+    def format_coeff(coeff):
+        return str(coeff) if coeff < 0 else "+{0}".format(coeff)
+
+    @staticmethod
+    def format_power(power):
+        return 'x^{0}'.format(power) if power != 0 else ''
+
+    def __eq__(self, other):
+        if not isinstance(other, Polynomial):
+            return False
+
+        for x, y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue=0):
+            if x != y:
+                return False
+
+        return True
+
     def __add__(self, other):
-        newCoeffs = [(x+y) % self.field.p for x,y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue = 0)]
+        newCoeffs = [self.field.Add(x, y) for x, y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue=0)]
+
         return Polynomial(newCoeffs, self.field)
-    
+
     def __sub__(self, other):
-        newCoeffs = [(x-y) %self.field.p for x,y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue = 0)]
+        """
+        https://stackoverflow.com/questions/29572371/remove-all-trailing-zeroes-in-python-list
+        """
+        newCoeffs = [self.field.Subtract(x, y) for x, y in
+                     itertools.zip_longest(self.coeffs, other.coeffs, fillvalue=0)]
+
         return Polynomial(newCoeffs, self.field)
-    
-    def __mul__(self,other):
-        newCoeffs = [0 for _ in range(max(self.degree+1, other.degree+1)*2)]
+
+    def __mul__(self, other):
+        newCoeffs = [0 for _ in range(max(self.degree + 1, other.degree + 1) * 2)]
         for deg_1, coeff_1 in enumerate(self.coeffs):
             for deg_2, coeff_2 in enumerate(other.coeffs):
-                print("c_1",coeff_1,"c_2", coeff_2)
-                newCoeffs[deg_1 +deg_2] += coeff_1 * coeff_2
-                newCoeffs[deg_1 +deg_2] = newCoeffs[deg_1 +deg_2] % self.field.p
-        newCoeffs = newCoeffs[:self.degree + other.degree+1]
-            
+                newCoeffs[deg_1 + deg_2] = self.field.Add(newCoeffs[deg_1 + deg_2],
+                                                          self.field.Multiply(coeff_1, coeff_2))
         return Polynomial(newCoeffs, self.field)
-    
-    def __truediv__(self,other):
-        result = [0 for _ in range((self.degree - other.degree)+1)]
+
+    def __truediv__(self, other):
+        result = [0 for _ in range((self.degree - other.degree) + 1)]
         f = Polynomial(self.coeffs, self.field)
-        v = Polynomial(other.coeffs,other.field)
-        while f.degree >= v.degree and (f != Polynomial([0],F) and v != Polynomial([0],f)): #do equals to 0
+        v = Polynomial(other.coeffs, other.field)
 
+        while f.degree >= v.degree and (f != Polynomial([0], self.field) and v != Polynomial([0], self.field)):
             shift = f.degree - v.degree
-            shift_lst = [0 for _ in range(shift + 1)]
-            shift_lst[shift] = 1
-            shift_poly = Polynomial(shift_lst, self.field)
-            
+            shift_Lst = [0 for _ in range(shift + 1)]
+            shift_Lst[shift] = 1
+            shift_poly = Polynomial(shift_Lst, self.field)
             v = v * shift_poly
-
-            
             result[shift] = self.field.Divide(f.coeffs[f.degree], v.coeffs[v.degree])
-            
-            v = other * Polynomial([result[shift]], self.field)
-        
-            f = f-v
+            v = v * Polynomial([result[shift]], self.field)
+            f = f - v
+            v = Polynomial(other.coeffs, other.field)
 
-        return(Polynomial(result, self.field), f)
-        
+        return (Polynomial(result, self.field), f)
+
     def __mod__(self, other):
         return self.__truediv__(other)[1]
-    
+
     def __floordiv__(self, other):
         return self.__truediv__(other)[0]
-    
-                    
-                
-        
-        
-            
+
+    def __hash__(self):
+        s = "".join(str(x) for x in self.coeffs)
+
+        return int(s[::-1], self.field.p)
 
 
 class FElement:
@@ -787,7 +751,7 @@ x^4 + x^3
 
     """
 
-    def __init__(self,field,e):
+    def __init__(self, field, e):
         """
         The constructor takes two arguments, field, and e where
         field is an FField object and e is an integer representing
@@ -798,31 +762,31 @@ x^4 + x^3
         self.f = e
         self.field = field
 
-    def __add__(self,other):
+    def __add__(self, other):
         assert self.field == other.field
-        return FElement(self.field,self.field.Add(self.f,other.f))
+        return FElement(self.field, self.field.Add(self.f, other.f))
 
-    def __mul__(self,other):
+    def __mul__(self, other):
         assert self.field == other.field
-        return FElement(self.field,self.field.Multiply(self.f,other.f))
+        return FElement(self.field, self.field.Multiply(self.f, other.f))
 
-    def __mod__(self,o):
+    def __mod__(self, o):
         assert self.field == o.field
         return FElement(self.field,
-                        self.field.FullDivision(self.f,o.f,
+                        self.field.FullDivision(self.f, o.f,
                                                 self.field.FindDegree(self.f),
                                                 self.field.FindDegree(o.f))[1])
 
-    def __floordiv__(self,o):
+    def __floordiv__(self, o):
         assert self.field == o.field
         return FElement(self.field,
-                        self.field.FullDivision(self.f,o.f,
+                        self.field.FullDivision(self.f, o.f,
                                                 self.field.FindDegree(self.f),
                                                 self.field.FindDegree(o.f))[0])
 
-    def __truediv__(self,other):
+    def __truediv__(self, other):
         assert self.field == other.field
-        return FElement(self.field,self.field.Divide(self.f,other.f))
+        return FElement(self.field, self.field.Divide(self.f, other.f))
 
     def __div__(self, *args, **kwargs):
         "syntatic sugar for calling self.__truediv__(*args, **kwargs)"
@@ -834,98 +798,12 @@ x^4 + x^3
     def __repr__(self):
         return self.__str__()
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         assert self.field == other.field
         return self.f == other.f
-    
 
-    
-class Polynomial:
-    """
-    Implements polynomials using a list to store coefficients.
-    Accepts a field 
-    Addition
-    Subtraction
-    Multiplication
-    Division
-    
-    """
-    
-    def __init__(self, coeffs, field):
-        for i in reversed(coeffs[1:]):
-            if not i:
-                del coeffs[-1]
-            else:
-                break
-        self.coeffs = coeffs
-        self.degree = len(self.coeffs)-1 
-        self.field = field
-        
-    def __str__(self):
-        return str(self.coeffs)
-        
-    def __eq__(self,other):
-        if not isinstance(other,Polynomial):
-            return False
-        
-        for x,y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue = 0):
-            if x!=y:
-                return False
 
-        return True
-        
-    def __add__(self, other):
-        newCoeffs = [self.field.Add(x,y) for x,y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue = 0)]
-
-        return Polynomial(newCoeffs, self.field)
-    
-    def __sub__(self, other):
-        """
-        https://stackoverflow.com/questions/29572371/remove-all-trailing-zeroes-in-python-list
-        """
-        newCoeffs = [self.field.Subtract(x,y) for x,y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue = 0)]
-
-        return Polynomial(newCoeffs, self.field)
-    
-    def __mul__(self,other):
-        newCoeffs = [0 for _ in range(max(self.degree+1, other.degree+1)*2)]
-        for deg_1, coeff_1 in enumerate(self.coeffs):
-            for deg_2, coeff_2 in enumerate(other.coeffs):
-                newCoeffs[deg_1 +deg_2] =self.field.Add(newCoeffs[deg_1 +deg_2], self.field.Multiply(coeff_1, coeff_2))            
-        return Polynomial(newCoeffs, self.field)
-    
-    def __truediv__(self,other):
-        result = [0 for _ in range((self.degree - other.degree)+1)]
-        f = Polynomial(self.coeffs, self.field)
-        v = Polynomial(other.coeffs,other.field)
-        
-        while f.degree >= v.degree and (f != Polynomial([0],self.field) and v != Polynomial([0],self.field)):
-            shift = f.degree - v.degree
-            shift_Lst = [0 for _ in range(shift + 1)]
-            shift_Lst[shift] = 1
-            shift_poly = Polynomial(shift_Lst, self.field)
-            v = v * shift_poly
-            result[shift] = self.field.Divide(f.coeffs[f.degree], v.coeffs[v.degree])            
-            v = v * Polynomial([result[shift]], self.field)        
-            f = f-v
-            v = Polynomial(other.coeffs,other.field)
-
-        return (Polynomial(result, self.field), f)
-        
-    def __mod__(self, other):
-        return self.__truediv__(other)[1]
-    
-    def __floordiv__(self, other):
-        return self.__truediv__(other)[0]
-    
-    def __hash__(self):
-        s= "".join(str(x) for x in self.coeffs)
-                       
-        return int(s[::-1], self.field.p)
-    
-    
-
-def FullTest(testsPerField=10,sizeList=None):
+def FullTest(testsPerField=10, sizeList=None):
     """
     This function runs TestInverse and TestFullDivision for testsPerField
     random field elements for each field size in sizeList.  For example,
@@ -937,10 +815,11 @@ def FullTest(testsPerField=10,sizeList=None):
     if (None == sizeList):
         sizeList = gPrimitivePolys.keys()
     for i in sizeList:
-        F = FField(2,i)
-        for j in range(testsPerField):
+        F = FField(2, i)
+        for _ in range(testsPerField):
             F.TestChar2Inverse()
             F.TestChar2FullDivision()
+
 
 fields_doc = """
 Roughly speaking a finite field is a finite collection of elements
@@ -1082,7 +961,6 @@ such operations to make most of the computations efficient.
 
 """
 
-
 license_doc = """
   This code was originally written by Emin Martinian (emin@allegro.mit.edu).
   You may copy, modify, redistribute in source or binary form as long
@@ -1136,25 +1014,21 @@ by typing 'python ffield.py' or 'python -v ffield.py' at the
 command line.
 """
 
-
 # The following code is used to make the doctest package
 # check examples in docstrings.
 
 
 __test__ = {
-    'testing_doc' : testing_doc
+    'testing_doc': testing_doc
 }
+
 
 def _test():
     import doctest, ffield
     return doctest.testmod(ffield)
 
+
 if __name__ == "__main__":
     print('Starting automated tests (this may take a while)')
     _test()
     print('Tests finished.')
-
-
-
-
-
