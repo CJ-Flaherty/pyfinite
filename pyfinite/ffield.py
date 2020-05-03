@@ -172,21 +172,23 @@ class FField:
             else:
                 self.generator = self.ConvertListToElement(gPrimitivePolys[self.n])
             if useLUT == 1 or (useLUT == -1 and self.n < 10):  # use lookup table
+                self.zero = 0
                 self.unity = 1
                 self.root_substitution = self.generator - self.order  # order equiv to poly with 1 at nth degree
                 self.element_to_power = {}
                 self.power_to_element = {}
-                self.Char2GenerateDiscreteLogTable()
-                # self.Add = self.LUTAdd
-                # self.Subtract = self.LUTSubtract
-                # self.Inverse = self.LUTInverse
-                # self.Multiply = self.LUTMultiply
-                # self.Divide = self.LUTDivide
+                self.AddHelper = self.Char2Add
                 self.Add = self.Char2Add
-                self.Subtract = self.Char2Add  # in fields with char 2, x+y = x-y for all x and y
-                self.Inverse = self.Char2Inverse
-                self.Multiply = self.Char2Multiply
-                self.Divide = self.Char2Divide
+                self.Subtract = self.Char2Add
+                self.Inverse = self.LUTInverse
+                self.Multiply = self.LUTMultiply
+                self.Divide = self.LUTDivide
+                self.Char2GenerateDiscreteLogTable()
+                #self.Add = self.Char2Add
+                #self.Subtract = self.Char2Add  # in fields with char 2, x+y = x-y for all x and y
+                #self.Inverse = self.Char2Inverse
+                #self.Multiply = self.Char2Multiply
+                #self.Divide = self.Char2Divide
             elif self.n < 15:
                 self.unity = 1
                 self.Add = self.Char2Add
@@ -228,11 +230,12 @@ class FField:
                     self.element_to_power = [0 for _ in range(self.order)]
                     self.power_to_element = [0 for _ in range(self.order)]
                     self.GenerateDiscreteLogTable()
+                    self.AddHelper = self.PolyAdd
                     self.Add = self.PolyAdd  # LUT
-                    self.Multiply = self.LUTPolyMultiply
-                    self.Divide = self.LUTPolyDivide
+                    self.Multiply = self.LUTMultiply
+                    self.Divide = self.LUTDivide
                     self.Subtract = self.PolySubtract  # LUT
-                    self.Inverse = self.LUTPolyInverse
+                    self.Inverse = self.LUTInverse
 
                 else:
 
@@ -346,7 +349,7 @@ class FField:
             (floorADivB, aModB) = self.Char2FullDivision(a, b, aDegree, bDegree)
             (d, x, y) = self.Char2ExtendedEuclid(d, b, aModB, bDegree,
                                                  self.Char2FindDegree(aModB))
-            return (d, y, self.Subtract(x, self.Multiply(floorADivB, y)))
+            return (d, y, self.Subtract(x, self.Char2Multiply(floorADivB, y)))
 
     def Char2FullDivision(self, f, v, fDegree, vDegree):
         """
@@ -387,16 +390,18 @@ class FField:
         temp = map(lambda a, b: a << b, l, range(len(l) - 1, -1, -1))
         return reduce(lambda a, b: a | b, temp)
 
-    def LUTPolyInverse(self, a):
+    def LUTInverse(self, a):
         element_power = self.element_to_power[hash(a)]
         return self.power_to_element[self.order - element_power - 1]
 
-    def LUTPolyMultiply(self, a, b):
+    def LUTMultiply(self, a, b):
+        if a == self.zero or b == self.zero:
+            return self.zero
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
         return self.power_to_element[(a_power + b_power) % (self.order - 1)]
 
-    def LUTPolyDivide(self, a, b):
+    def LUTDivide(self, a, b):
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
         return self.power_to_element[(a_power - b_power) % (self.order - 1)]
@@ -423,7 +428,7 @@ class FField:
                 element = L[i - 1] << 1
                 if element >= self.order:
                     element -= self.order
-                    element += self.root_substitution
+                    element = self.Add(element, self.root_substitution)
                 L[i] = element
                 self.element_to_power[element] = i
                 self.power_to_element[i] = element
@@ -447,7 +452,7 @@ class FField:
             for i in range(1, self.order - 1):
                 poly = L[i - 1] * x
                 if poly.degree == self.n:
-                    for roots in range(poly.coeffs[self.n]):
+                    for _ in range(poly.coeffs[self.n]):
                         poly += self.root_substitution
                     reduced_coeffs = poly.coeffs
                     reduced_coeffs[self.n] = 0
@@ -615,8 +620,10 @@ class FField:
         """
         argument is an integer
         """
-        element = self.Add(self.unity, self.power_to_element[argument])
+        element = self.AddHelper(self.unity, self.power_to_element[argument])
         return self.element_to_power[element]
+
+
 
 
 class Polynomial:
@@ -814,7 +821,7 @@ def FullTest(testsPerField=10, sizeList=None):
 
     if (None == sizeList):
         sizeList = gPrimitivePolys.keys()
-    for i in sizeList:
+    for i in list(sizeList)[1::]:
         F = FField(2, i)
         for _ in range(testsPerField):
             F.TestChar2Inverse()
