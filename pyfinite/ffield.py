@@ -246,11 +246,21 @@ class FField:
                     self.Inverse = self.PolyInverse
 
     def LUTAdd(self, a, b):
+        """
+        Uses Zech's Logarithms to perform addition in finite fields
+        via a look up table.
+
+        """
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
         return self.power_to_element[a_power + self.GetZechsLog((b_power - a_power) % self.p)]
 
     def LUTSubtract(self, a, b):
+        """
+        Uses Zech's Logarithms to perform addition in finite fields
+        via a look up table.
+
+        """
         if self.p == 2:
             e = 0
         else:
@@ -391,10 +401,19 @@ class FField:
         return reduce(lambda a, b: a | b, temp)
 
     def LUTInverse(self, a):
+        """
+        Uses a look up table to compute an element's inverse
+
+        Say the field's multiplicative group has order q and element = generator^e
+        Then e^-1 = generator^{q-e}
+        """
         element_power = self.element_to_power[hash(a)]
         return self.power_to_element[self.order - element_power - 1]
 
     def LUTMultiply(self, a, b):
+        """
+        Uses discrete logarithms to perform multiplication with a look up table
+        """
         if a == self.zero or b == self.zero:
             return self.zero
         a_power = self.element_to_power[hash(a)]
@@ -402,17 +421,32 @@ class FField:
         return self.power_to_element[(a_power + b_power) % (self.order - 1)]
 
     def LUTDivide(self, a, b):
+        """
+        Uses discrete logariths to perform division with a look up table.
+        """
+        if a == self.zero:
+            return self.zero
         a_power = self.element_to_power[hash(a)]
         b_power = self.element_to_power[hash(b)]
         return self.power_to_element[(a_power - b_power) % (self.order - 1)]
 
     def GetRootSubstitution(self):
+        """
+        say we have generating polynomial g(x) = x^3 +x +1
+        Since we assume g(x) has a root in our field, we have
+        x^3 =0 -(x +1)
+        That is, when generating our field, any cubic term can be replaced with -x +-1
+        """
         temp = self.zero - self.generator
         sub_coeffs = temp.coeffs
         sub_coeffs[self.n] = 0
         return Polynomial(sub_coeffs, self.underlying_field)
 
     def Char2GenerateDiscreteLogTable(self):
+        """
+        Generates a discrete log table in fields of characteristic 2.
+        Uses same logic as GenerateDiscreteLogTable, but with bitwise operators
+        """
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
         if os.path.exists(lutName):
             # fd = open(lutName,'rb')
@@ -437,6 +471,13 @@ class FField:
             # fd.close()
 
     def GenerateDiscreteLogTable(self):
+       """
+       Generates a Discrete Logarithm table by repeatedly exponentiating the generator.
+       When the result of this exonentiation has degree equal to the degree of the generating 
+       polynomial, we add the root substitution and set the nth degree term of the polynomial equal
+       to zero. This is equivalent to taking the remainder modulo the generator.
+       
+       """
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
         if False:  # (os.path.exists(lutName)):
             # fd = open(lutName,'rb')
@@ -466,38 +507,83 @@ class FField:
     #   fd.close()
 
     def PolyAdd(self, a, b):
+        """
+        Adds 2 polynomials
+        """
         return a + b
 
     def PolySubtract(self, a, b):
+        """
+        Subtracts 2 polynomials
+        """
         return a - b
 
     def PolyMultiply(self, a, b):
+        """
+        Multiplies 2 polynomials according to the field
+        """
         return (a * b) % self.generator
 
     def PolyDivide(self, a, b):
+        """
+        Divides 2 polynomials according to the field
+        """
         b = self.Inverse(b)
         return self.PolyMultiply(a, b)
 
     def PolyInverse(self, a):
+        """
+        Finds the multiplicative inverse of a in the field
+        """
         return self.ExtendedEuclid(a, self.generator)[0] % self.generator
 
     def IntegerModularAdd(self, a, b):
+        """
+        Adds 2 integers in Z_p
+        used when n == 1
+        """
         return (a + b) % self.p
 
     def IntegerModularSubtract(self, a, b):
+         """
+        Subtracts 2 integers in Z_p
+        used when n == 1
+        """ 
         return (a - b) % self.p
 
     def IntegerModularMultiply(self, a, b):
+         """
+        Multiplies 2 integers in Z_p
+        used when n == 1
+        """
         return (a * b) % self.p
 
     def IntegerModularDivide(self, a, b):
+        """
+        Divides 2 integers in Z_p
+        used when n == 1
+        """
         b = self.IntegerModularInverse(b)
         return (a * b) % self.p
 
     def IntegerModularInverse(self, a):
+        """
+        Finds a^-1 in Z_p
+        used when n == 1
+
+        say a = generator^x
+        Then a^{(p-2)} * a^x = a^{p-1}
+
+        and since Z_p's multiplicative group has order p-1,
+        a^{p-2} = a^-1
+        """
         return a ** (self.p - 2) % self.p
 
     def ExtendedEuclid(self, a, b):
+        """Performs the extended euclidean algorithm on a, b
+        returning old_s, old_t, old_r such that
+        old_s*a +old_t*b = old_r = gcd(a,b)
+        """ 
         s = copy.copy(self.zero)
         old_s = copy.copy(self.unity)
         t = copy.copy(self.unity)
@@ -638,6 +724,11 @@ class Polynomial:
     """
 
     def __init__(self, coeffs, field):
+        """
+        initiates a polynomial object over field 
+        with coefficients from coeffs
+        strips 0's from end of coefficient list on init.
+        """
         for i in reversed(coeffs[1:]):
             if not i:
                 del coeffs[-1]
@@ -671,6 +762,9 @@ class Polynomial:
         return 'x^{0}'.format(power) if power != 0 else ''
 
     def __eq__(self, other):
+        """
+        2 polynomials are equal iff they have the same coeff list
+        """
         if not isinstance(other, Polynomial):
             return False
 
@@ -681,13 +775,16 @@ class Polynomial:
         return True
 
     def __add__(self, other):
+        """
+        adds polynomials according to operations in the underlying field
+        """
         newCoeffs = [self.field.Add(x, y) for x, y in itertools.zip_longest(self.coeffs, other.coeffs, fillvalue=0)]
 
         return Polynomial(newCoeffs, self.field)
 
     def __sub__(self, other):
         """
-        https://stackoverflow.com/questions/29572371/remove-all-trailing-zeroes-in-python-list
+        subtracts polynomials according to operations in underlying field
         """
         newCoeffs = [self.field.Subtract(x, y) for x, y in
                      itertools.zip_longest(self.coeffs, other.coeffs, fillvalue=0)]
@@ -695,14 +792,22 @@ class Polynomial:
         return Polynomial(newCoeffs, self.field)
 
     def __mul__(self, other):
+        """
+        multiplies polynomials according to operations in underlying field
+
+        
+        """
         newCoeffs = [0 for _ in range(max(self.degree + 1, other.degree + 1) * 2)]
         for deg_1, coeff_1 in enumerate(self.coeffs):
             for deg_2, coeff_2 in enumerate(other.coeffs):
-                newCoeffs[deg_1 + deg_2] = self.field.Add(newCoeffs[deg_1 + deg_2],
-                                                          self.field.Multiply(coeff_1, coeff_2))
+                newCoeffs[deg_1 + deg_2] = self.field.Add(newCoeffs[deg_1 + deg_2], #deg_1 + deg_2 according to normal addition.
+                                                          self.field.Multiply(coeff_1, coeff_2)) 
         return Polynomial(newCoeffs, self.field)
 
     def __truediv__(self, other):
+        """
+        Divides 2 polynomials, using underlying field operations on coefficients
+        """
         result = [0 for _ in range((self.degree - other.degree) + 1)]
         f = Polynomial(self.coeffs, self.field)
         v = Polynomial(other.coeffs, other.field)
@@ -721,12 +826,23 @@ class Polynomial:
         return (Polynomial(result, self.field), f)
 
     def __mod__(self, other):
+        """
+        remainder of self divided by other
+        self%other
+        """
         return self.__truediv__(other)[1]
 
     def __floordiv__(self, other):
+        """
+        self//other
+        """
         return self.__truediv__(other)[0]
 
     def __hash__(self):
+        """
+        polynomials are hashed by reversing their coeff lists
+        and considering that a number base p
+        """
         s = "".join(str(x) for x in self.coeffs)
 
         return int(s[::-1], self.field.p)
