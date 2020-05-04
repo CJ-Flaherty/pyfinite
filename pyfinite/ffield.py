@@ -463,7 +463,8 @@ class FField:
                 L[i] = element
                 self.element_to_power[element] = i
                 self.power_to_element[i] = element
-            pickle.dump(self.power_to_element, self.element_to_power, fd)
+            pickle.dump(self.power_to_element, self.element_to_power, open(lutName, "wb" ))
+
 
     def GenerateDiscreteLogTable(self):
         """
