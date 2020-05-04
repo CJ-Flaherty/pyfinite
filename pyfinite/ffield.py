@@ -735,9 +735,8 @@ class Polynomial:
         https://stackoverflow.com/questions/34843514/printing-a-polynomial-in-python
         Łukasz Rogalski
         """
-        breakpoint()
         chunks = []
-        for coeff, power in zip(self.coeffs, range(len(self.coeffs) - 1, -1, -1)):
+        for coeff, power in zip(self.coeffs, range(len(self.coeffs))):
             if coeff == 0:
                 continue
             chunks.append(self.format_coeff(coeff))
