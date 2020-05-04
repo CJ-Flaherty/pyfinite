@@ -471,13 +471,13 @@ class FField:
             # fd.close()
 
     def GenerateDiscreteLogTable(self):
-       """
-       Generates a Discrete Logarithm table by repeatedly exponentiating the generator.
-       When the result of this exonentiation has degree equal to the degree of the generating 
-       polynomial, we add the root substitution and set the nth degree term of the polynomial equal
-       to zero. This is equivalent to taking the remainder modulo the generator.
-       
-       """
+        """
+        Generates a Discrete Logarithm table by repeatedly exponentiating the generator.
+        When the result of this exonentiation has degree equal to the degree of the generating 
+        polynomial, we add the root substitution and set the nth degree term of the polynomial equal
+        to zero. This is equivalent to taking the remainder modulo the generator.
+        """
+
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
         if False:  # (os.path.exists(lutName)):
             # fd = open(lutName,'rb')
@@ -545,14 +545,15 @@ class FField:
         return (a + b) % self.p
 
     def IntegerModularSubtract(self, a, b):
-         """
+        """
         Subtracts 2 integers in Z_p
         used when n == 1
         """ 
+
         return (a - b) % self.p
 
     def IntegerModularMultiply(self, a, b):
-         """
+        """
         Multiplies 2 integers in Z_p
         used when n == 1
         """
