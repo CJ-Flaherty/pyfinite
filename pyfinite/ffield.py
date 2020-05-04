@@ -449,10 +449,7 @@ class FField:
         """
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
         if os.path.exists(lutName):
-            # fd = open(lutName,'rb')
-            # self.power_to_element, self.element_to_power = pickle.load(fd)
-            # fd.close()
-            pass
+            self.power_to_element, self.element_to_power = pickle.load( open( lutName, "rb" ) )
         else:
             L = [0 for x in range(self.order)]
             L[0] = copy.copy(self.unity)
@@ -466,9 +463,7 @@ class FField:
                 L[i] = element
                 self.element_to_power[element] = i
                 self.power_to_element[i] = element
-            # fd = open(lutName,'wb')
-            # pickle.dump(self.power_to_element, self.element_to_power, fd)
-            # fd.close()
+            pickle.dump((self.power_to_element, self.element_to_power), open( lutName, "wb" ) )
 
     def GenerateDiscreteLogTable(self):
         """
@@ -479,11 +474,9 @@ class FField:
         """
 
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
-        if False:  # (os.path.exists(lutName)):
-            # fd = open(lutName,'rb')
-            # self.power_to_element, self.element_to_power = pickle.load(fd)
-            # fd.close()
-            pass
+        if (os.path.exists(lutName)):
+            self.power_to_element, self.element_to_power = pickle.load( open(lutName, "rb" ) )
+            
         else:
             x = Polynomial([0, 1], self.underlying_field)  # equiv to the polynomial x
             L = [0 for x in range(self.order)]
@@ -501,10 +494,7 @@ class FField:
                 L[i] = poly
                 self.element_to_power[hash(poly)] = i
                 self.power_to_element[i] = poly
-            # with open(lutName, 'wb') as fd:
-
-    #                pickle.dump(self.power_to_element, self.element_to_power, fd)
-    #   fd.close()
+            pickle.dump((self.power_to_element, self.element_to_power), open(lutName, "wb" ))
 
     def PolyAdd(self, a, b):
         """
