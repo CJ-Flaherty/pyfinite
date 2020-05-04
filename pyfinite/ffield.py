@@ -463,7 +463,7 @@ class FField:
                 L[i] = element
                 self.element_to_power[element] = i
                 self.power_to_element[i] = element
-            pickle.dump((self.power_to_element, self.element_to_power), open( lutName, "wb" ) )
+            pickle.dump(self.power_to_element, self.element_to_power, fd)
 
     def GenerateDiscreteLogTable(self):
         """
@@ -494,7 +494,7 @@ class FField:
                 L[i] = poly
                 self.element_to_power[hash(poly)] = i
                 self.power_to_element[i] = poly
-            pickle.dump((self.power_to_element, self.element_to_power), open(lutName, "wb" ))
+            pickle.dump(self.power_to_element, self.element_to_power, open(lutName, "wb" ))
 
     def PolyAdd(self, a, b):
         """
@@ -735,6 +735,7 @@ class Polynomial:
         https://stackoverflow.com/questions/34843514/printing-a-polynomial-in-python
         Łukasz Rogalski
         """
+        breakpoint()
         chunks = []
         for coeff, power in zip(self.coeffs, range(len(self.coeffs) - 1, -1, -1)):
             if coeff == 0:
