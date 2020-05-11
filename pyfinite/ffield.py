@@ -476,7 +476,8 @@ class FField:
 
         lutName = 'ffield.lut.' + repr(self.order) + str(self.generator)
         if (os.path.exists(lutName)):
-            self.power_to_element, self.element_to_power = pickle.load( open(lutName, "rb" ) )
+            pass
+        #    (self.power_to_element, self.element_to_power) = pickle.load( open(lutName, "rb" ) )
             
         else:
             x = Polynomial([0, 1], self.underlying_field)  # equiv to the polynomial x
@@ -495,7 +496,7 @@ class FField:
                 L[i] = poly
                 self.element_to_power[hash(poly)] = i
                 self.power_to_element[i] = poly
-            pickle.dump(self.power_to_element, self.element_to_power, open(lutName, "wb" ))
+            #pickle.dump(self.power_to_element, self.element_to_power, open(lutName, "wb" ))
 
     def PolyAdd(self, a, b):
         """
